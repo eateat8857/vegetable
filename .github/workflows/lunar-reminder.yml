@@ -2,8 +2,18 @@ name: Lunar Veggie Reminder
 
 on:
   schedule:
-    - cron: "0 23 * * *"   # 每天 00:30 UTC → 台灣 08:30
-  workflow_dispatch:       # 手動測試用
+    - cron: "0 23 * * *"   # 每天 23:00 UTC → 台灣 07:00
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "強制推播（忽略是否為農曆 1/15）"
+        type: boolean
+        required: false
+        default: false
+      pretend_today:
+        description: "把今天當作此日期 (YYYY-MM-DD)"
+        type: string
+        required: false
 
 jobs:
   run:
@@ -22,7 +32,9 @@ jobs:
 
       - name: Run reminder
         env:
-          LINE_CHANNEL_ACCESS_TOKEN: ${{ 8Vp/vsXL81XKkn2ahFv/3FduMnYpnFGV6IwboJNIOCZDicdEnsJWXF/yQBRpZRMzF/xShwfvRV2cL1WdczRDPt5L5PB9bRb8pk+Vm7kSPfpLyQRHBGev1akrXtoSAtDykqsVar6qfGbPQuyr+Xb1tQdB04t89/1O/w1cDnyilFU= }}
-          LINE_USER_ID: ${{ minnie11091212,0983649338 }}     # 多人用逗號分隔
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}   # 多人用逗號分隔
           TZ: Asia/Taipei
+          FORCE: ${{ inputs.force }}
+          PRETEND_TODAY: ${{ inputs.pretend_today }}
         run: python lunar_veggie_messaging.py
