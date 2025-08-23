@@ -3,7 +3,7 @@ name: Lunar Veggie Reminder
 
 on:
   schedule:
-    - cron: "30 6 * * *"   # 每天 00:30 UTC → 台灣 08:30
+    - cron: "25 6 * * *"   # 每天 00:30 UTC → 台灣 08:30
   workflow_dispatch:       # 手動測試用
 
 jobs:
