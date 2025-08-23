@@ -1,32 +1,40 @@
-name: List LINE Followers
+name: Lunar Veggie Reminder
 
 on:
+  schedule:
+    - cron: "0 23 * * *"   # 每天 23:00 UTC → 台灣 07:00
   workflow_dispatch:
+    inputs:
+      force:
+        description: "強制推播（忽略是否為農曆 1/15）"
+        type: boolean
+        required: false
+        default: false
+      pretend_today:
+        description: "把今天當作此日期 (YYYY-MM-DD)"
+        type: string
+        required: false
 
 jobs:
-  list:
+  run:
     runs-on: ubuntu-latest
     steps:
-      - name: Show followers
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run reminder
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-        run: |
-          python - << 'PY'
-          import os, requests
-          token = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
-          hdr = {"Authorization": f"Bearer {token}"}
-          url = "https://api.line.me/v2/bot/followers/ids"
-          start = None
-          users = []
-          while True:
-              params = {"start": start} if start else None
-              r = requests.get(url, headers=hdr, params=params, timeout=10)
-              r.raise_for_status()
-              j = r.json()
-              users += j.get("userIds", [])
-              start = j.get("next")
-              if not start: break
-          print("Followers userIds:")
-          for u in users: print(u)
-          print(f"Total: {len(users)}")
-          PY
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}   # 多人用逗號分隔
+          TZ: Asia/Taipei
+          FORCE: ${{ inputs.force }}
+          PRETEND_TODAY: ${{ inputs.pretend_today }}
+        run: python lunar_veggie_messaging.py
