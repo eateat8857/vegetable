@@ -1,1 +1,42 @@
+name: TEMP — LINE Diagnostics
 
+on:
+  workflow_dispatch:
+    inputs:
+      profile_user:
+        description: "想測試的 userId（U 開頭）。留白就用 LINE_USER_ID Secret 的第一個。"
+        type: string
+        required: false
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sanity check env (不顯示機密)
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          python - << 'PY'
+          import os
+          ids = [u.strip() for u in os.getenv("LINE_USER_ID","").split(",") if u.strip()]
+          print({"LINE_CHANNEL_ACCESS_TOKEN": "SET" if os.getenv("LINE_CHANNEL_ACCESS_TOKEN") else "MISSING",
+                 "LINE_USER_ID": "SET" if ids else "MISSING"})
+          print("User IDs parsed:", ids)
+          PY
+
+      - name: Token & friend check
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          PROFILE_USER: ${{ inputs.profile_user }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          python - << 'PY'
+          import os, requests
+          token = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+          target = (os.environ.get("PROFILE_USER") or os.environ.get("LINE_USER_ID","").split(",")[0].strip())
+          print("Check profile for:", target)
+          r = requests.get(f"https://api.line.me/v2/bot/profile/{target}",
+                           headers={"Authorization": f"Bearer {token}"}, timeout=10)
+          print("PROFILE:", r.status_code, r.text[:200])
+          PY
