@@ -23,6 +23,6 @@ jobs:
       - name: Run reminder
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}     # 多人用逗號分隔
+          LINE_USER_ID: ${{ minnie11091212,0983649338 }}     # 多人用逗號分隔
           TZ: Asia/Taipei
         run: python lunar_veggie_messaging.py
