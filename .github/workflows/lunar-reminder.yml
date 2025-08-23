@@ -1,22 +1,29 @@
+
 name: Lunar Veggie Reminder
 
 on:
   schedule:
-    - cron: "15 6 * * *"   # 05:48 UTC → 台灣 13:48，每天跑一次
-  workflow_dispatch:       # 保留手動測試入口
+    - cron: "30 6 * * *"   # 每天 00:30 UTC → 台灣 08:30
+  workflow_dispatch:       # 手動測試用
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
       - name: Run reminder
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}   # 多人逗號分隔
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}     # 多人用逗號分隔
           TZ: Asia/Taipei
         run: python lunar_veggie_messaging.py
